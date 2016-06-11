@@ -7,7 +7,7 @@ Java_cc_yann_android_jniblur_JNIBlur_nativeBlur(JNIEnv *env, jclass type, jobjec
     //NULL check
     if (NULL == bitmap) {
         LOGW("bitmap is NULL");
-        jclass exception = (*env)->FindClass(env, "");
+        jclass exception = (*env)->FindClass(env, "java/lang/NullPointerException");
         if (NULL != exception) {
             (*env)->ThrowNew(env, exception, "bitmap is null");
         }
@@ -28,6 +28,17 @@ Java_cc_yann_android_jniblur_JNIBlur_nativeBlur(JNIEnv *env, jclass type, jobjec
     int ret = AndroidBitmap_getInfo(env,bitmap, &info);
     if (ret != ANDROID_BITMAP_RESULT_SUCCESS) {
         LOGW("get bitmap failed");
+        return BLUR_RESULT_ERROR;
+    }
+
+    //check bitmap format
+    if (ANDROID_BITMAP_FORMAT_RGBA_8888 != info.format) {
+        LOGW("Illegal bitmap format %d", info.format);
+        jclass exception = (*env)->FindClass(env, "java/lang/IllegalStateException");
+        if (NULL != exception) {
+            (*env)->ThrowNew(env, exception, "bitmap format must be \"ARGB_8888\"");
+        }
+        (*env)->DeleteLocalRef;
         return BLUR_RESULT_ERROR;
     }
 
